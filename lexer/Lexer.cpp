@@ -5,7 +5,7 @@
 Lexer::Lexer() = default;
 Lexer::~Lexer() = default;
 
-inline static const std::unordered_map<std::string, TokenType> tokenMap = {
+inline static const std::unordered_map<std::string_view, TokenType> tokenMap = {
         {"(", TokenType::LParen},
         {")", TokenType::RParen},
         {"[", TokenType::LBracket},
@@ -73,6 +73,9 @@ inline static const std::unordered_map<std::string, TokenType> tokenMap = {
         {"assert", TokenType::Assert},
         {"async", TokenType::Async},
         {"await", TokenType::Await},
+        {"public", TokenType::Public},
+        {"private", TokenType::Private},
+        {"internal", TokenType::Internal}
 };
 
 void flush(std::string &builder, std::vector<std::string> &rawTokens) {
@@ -125,12 +128,22 @@ std::vector<Token> Lexer::tokenize(const std::vector<std::string> &rawTokens) {
         if (tokenMap.contains(s)) {
             auto token = Token::monostate(tokenMap.at(s), line, column);
             tokens.push_back(token);
+        } else if (s[0]=='"' && s.back()=='"') {
+            auto token = Token(TokenType::Literal, s, line, column);
+            tokens.push_back(token);
+        } else if (std::isdigit(s[0])) {
+            auto token = Token(TokenType::Literal, std::stod(s), line, column);
+            tokens.push_back(token);
+        } else {
+            auto token = Token(TokenType::Identifier, s, line, column);
+            tokens.push_back(token);
         }
         column+=s.size();
         if (s == "\n") {
             line++; column=0;
         }
     }
+    tokens.emplace_back(TokenType::EndOfFile, std::monostate(), line, column);
     return tokens;
 }
 

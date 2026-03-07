@@ -16,7 +16,7 @@ enum class TokenType {
     Increment, Decrement, UnaryMinus, UnaryPlus,
     // Keywords
     If, Else, Elif, While, For, Def, Class, Return, Ext, Import, As, Try, Catch, Finally, With,
-    Break, Continue, And, Or, Not, In, Is, True, False, Nonlocal, Del, Assert, Async, Await,
+    Break, Continue, And, Or, Not, In, Is, True, False, Nonlocal, Del, Assert, Async, Await, Public, Internal, Private,
     // Constants
     Identifier, Literal
 
