@@ -14,6 +14,12 @@ add_executable(typhon main.cpp
         parser/ASTNode.h
         util/variant_utils.h
         util/variant_utils.cpp
-        analyzer/semantic_analyzer.cpp
-        analyzer/semantic_analyzer.h
-        parser/Common.h)
+        analyzer/SemanticAnalyzer.cpp
+        analyzer/SemanticAnalyzer.h
+        parser/Common.h
+        analyzer/Symbol.cpp
+        analyzer/Symbol.h
+        analyzer/Type.cpp
+        analyzer/Type.h
+        analyzer/Visitor.h
+        errors/errors.h)
