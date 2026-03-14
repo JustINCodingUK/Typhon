@@ -30,6 +30,9 @@ public:
     void visit(Function *expr) override;
     void visit(ExtensionFunction *expr) override;
     void visit(Parameter *expr) override;
+
+private:
+    void defineParameters(SymbolTable& thisSymbolTable, std::vector<Parameter>& params);
 };
 
 

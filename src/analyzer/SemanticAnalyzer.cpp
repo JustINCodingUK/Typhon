@@ -4,6 +4,8 @@
 
 #include "SemanticAnalyzer.h"
 
+#include <algorithm>
+
 #include "errors/errors.h"
 #include "parser/ASTNode.h"
 
@@ -92,9 +94,46 @@ void SemanticAnalyzer::visit(GetExpression *expr) {
     expr->left->accept(this);
     const auto &leftType = expr->left->evaluatedType;
     if (const auto classMember = symbolTable.resolveClassMember(leftType.className, expr->propertyName);
-        classMember == nullptr) throw std::runtime_error("Illegal Access");
+        classMember == nullptr)
+        throw std::runtime_error("Illegal Access");
 }
 
 void SemanticAnalyzer::visit(Class *expr) {
+    SymbolTable classSymbolTable;
+    classSymbolTable.enterScope();
 
+    // TODO: generic params
+    defineParameters(classSymbolTable, expr->params);
+    SymbolTable &tempTable = symbolTable;
+    symbolTable = classSymbolTable;
+
+    expr->body->accept(this);
+
+    auto classSymbolTablePointer = std::make_unique<SymbolTable>(classSymbolTable);
+    const auto classSymbol = std::make_shared<ClassSymbol>(expr->name, std::move(classSymbolTablePointer),
+                                                           Type::Class(expr->name, {}), expr->visibility);
+    tempTable.define(expr->name, classSymbol);
+    symbolTable = tempTable;
+}
+
+void SemanticAnalyzer::visit(Function *expr) {
+    symbolTable.enterScope();
+    defineParameters(symbolTable, expr->params);
+    expr->body->accept(this);
+    symbolTable.exitScope();
+    // TODO: Define function symbol
+}
+
+void SemanticAnalyzer::defineParameters(SymbolTable &thisSymbolTable, std::vector<Parameter> &params) {
+    for (auto &param: params) {
+        param.accept(this);
+        std::vector<std::shared_ptr<Type> > generics;
+        std::ranges::transform(param.type->genericParams, std::back_inserter(generics), [](std::string typeName) {
+            auto generic = Type::Class(std::move(typeName), {});
+            return std::make_shared<Type>(generic);
+        });
+        auto type = Type::Class(param.type->typeClass, std::move(generics));
+        const auto parameterSymbol = std::make_shared<Symbol>(param.name, type, param.visibility, false);
+        thisSymbolTable.define(param.name, parameterSymbol);
+    }
 }
